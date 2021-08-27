@@ -33,7 +33,7 @@ go test ./...
 
 ## Credits
 
-The encoding/decoding functions were translated from (chrisdickinson/varint)[https://github.com/chrisdickinson/varint].
+The encoding/decoding functions were translated from [chrisdickinson/varint](https://github.com/chrisdickinson/varint).
 
 ## Contributing
 
