@@ -5,8 +5,6 @@ import (
 	"math/big"
 )
 
-var ErrOutOfRange = errors.New("out of range")
-
 // Decode a big integer from a byte slice, returning the result and the number of bytes read.
 // The result is guaranteed to be non-negative.
 func Decode(data []byte) (*big.Int, int) {
@@ -34,7 +32,7 @@ func Decode(data []byte) (*big.Int, int) {
 				continue
 			}
 		} else {
-			panic(ErrOutOfRange)
+			panic(errors.New("out of range"))
 		}
 	}
 

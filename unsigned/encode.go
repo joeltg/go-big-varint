@@ -1,6 +1,7 @@
 package unsigned
 
 import (
+	"errors"
 	"math/big"
 )
 
@@ -8,7 +9,9 @@ import (
 // The function will panic if the value is less than zero.
 func Encode(data []byte, i *big.Int) int {
 	if i.Sign() < 0 {
-		panic(ErrLessThanZero)
+		panic(errors.New("unsigned varints must be non-negative"))
+	} else if len(data) < EncodingLength(i) {
+		panic(errors.New("the provided byte slice is too small to encode the provided integer"))
 	}
 
 	// allocate a new big.Int so that we can mutate it
@@ -39,7 +42,7 @@ func Encode(data []byte, i *big.Int) int {
 // The function will panic if the value is less than zero.
 func EncodingLength(i *big.Int) int {
 	if i.Sign() < 0 {
-		panic(ErrLessThanZero)
+		panic(errors.New("unsigned varints must be non-negative"))
 	}
 
 	bitLength := i.BitLen()
