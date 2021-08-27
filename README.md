@@ -24,8 +24,7 @@ go get github.com/joeltg/go-big-varint/unsigned
 ## Testing
 
 ```
-go test ./unsigned
-go test ./signed
+go test ./...
 ```
 
 ## Credits
