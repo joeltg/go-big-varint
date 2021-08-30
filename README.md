@@ -16,14 +16,12 @@ Encode and decode arbitrarily large signed and unsigned `*big.Int` values.
 ## Install
 
 ```
-go get github.com/joeltg/go-big-varint/unsigned
-go get github.com/joeltg/go-big-varint/signed
+go get github.com/joeltg/go-big-varint
 ```
 
 ## Usage
 
-- https://pkg.go.dev/github.com/joeltg/go-big-varint/unsigned
-- https://pkg.go.dev/github.com/joeltg/go-big-varint/signed
+https://pkg.go.dev/github.com/joeltg/go-big-varint
 
 ## Testing
 
