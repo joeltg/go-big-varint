@@ -19,6 +19,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - This changlog!
 - An index package `bigvarint` at `github.com/joeltg/go-big-varint`
 
-[unreleased]: https://github.com/joeltg/react-dataflow-editor/compare/v0.3.0...HEAD
-[0.3.0]: https://github.com/joeltg/react-dataflow-editor/releases/tag/v0.3.0
-[0.2.0]: https://github.com/joeltg/react-dataflow-editor/releases/tag/v0.2.0
+[unreleased]: https://github.com/joeltg/go-big-varint/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/joeltg/go-big-varint/releases/tag/v0.3.0
+[0.2.0]: https://github.com/joeltg/go-big-varint/releases/tag/v0.2.0
