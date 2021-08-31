@@ -26,7 +26,7 @@ https://pkg.go.dev/github.com/joeltg/go-big-varint
 ## Testing
 
 ```
-go test ./...
+go test
 ```
 
 ## Credits

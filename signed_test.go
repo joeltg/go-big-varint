@@ -1,4 +1,4 @@
-package signed
+package varint
 
 import (
 	"bytes"
@@ -9,10 +9,10 @@ import (
 	"testing"
 )
 
-func TestEncodeZero(t *testing.T) {
+func TestEncodeSignedZero(t *testing.T) {
 	i := big.NewInt(0)
 	data := make([]byte, 10)
-	l := Encode(data, i)
+	l := Signed.Encode(data, i)
 	if l != 1 {
 		log.Println(data, i, l)
 		t.Fatal("bad int64 encoding length")
@@ -26,9 +26,9 @@ func TestEncodeZero(t *testing.T) {
 	}
 }
 
-func TestDecodeZero(t *testing.T) {
+func TestDecodeSignedZero(t *testing.T) {
 	data := make([]byte, 10)
-	i, l := Decode(data)
+	i, l := Signed.Decode(data)
 	if l != 1 {
 		log.Println(data, i, l)
 		t.Fatal("bad int64 decoding length")
@@ -51,7 +51,7 @@ func TestEncodeInt64(t *testing.T) {
 		i.SetInt64(v)
 		d1 := make([]byte, binary.MaxVarintLen64)
 		d2 := make([]byte, binary.MaxVarintLen64)
-		l1 := Encode(d1, i)
+		l1 := Signed.Encode(d1, i)
 		l2 := binary.PutVarint(d2, i.Int64())
 		if l1 != l2 {
 			log.Println(v, d1, l1, d2, l2)
@@ -75,7 +75,7 @@ func TestDecodeInt64(t *testing.T) {
 	for v := a; v > 0; v = v >> 1 {
 		data := make([]byte, binary.MaxVarintLen64)
 		length := binary.PutVarint(data, v)
-		i, l := Decode(data)
+		i, l := Signed.Decode(data)
 		if l != length {
 			log.Println(v, data, length, i, l)
 			t.Fatal("bad int64 decoding length")
@@ -96,12 +96,12 @@ func TestEncodeDecodeInt128(t *testing.T) {
 	i = i.Lsh(i, 64)
 	i = i.Add(i, big.NewInt(b))
 	for i.BitLen() > 0 {
-		length := EncodingLength(i)
+		length := Signed.EncodingLength(i)
 		data := make([]byte, length)
-		if Encode(data, i) != length {
+		if Signed.Encode(data, i) != length {
 			log.Println(i, length, data)
 			t.Fatal("bad int128 encoding length")
-		} else if j, l := Decode(data); l != length {
+		} else if j, l := Signed.Decode(data); l != length {
 			t.Fatal("bad int128 decoding length")
 		} else if j.Cmp(i) != 0 {
 			t.Fatal("bad int128 decoding result")

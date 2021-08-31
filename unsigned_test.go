@@ -1,4 +1,4 @@
-package unsigned
+package varint
 
 import (
 	"bytes"
@@ -9,10 +9,10 @@ import (
 	"testing"
 )
 
-func TestEncodeZero(t *testing.T) {
+func TestEncodeUnsignedZero(t *testing.T) {
 	i := big.NewInt(0)
 	data := make([]byte, 10)
-	l := Encode(data, i)
+	l := Unsigned.Encode(data, i)
 	if l != 1 {
 		log.Println(data, i, l)
 		t.Fatal("bad uint64 encoding length")
@@ -26,9 +26,9 @@ func TestEncodeZero(t *testing.T) {
 	}
 }
 
-func TestDecodeZero(t *testing.T) {
+func TestDecodeUnsignedZero(t *testing.T) {
 	data := make([]byte, 10)
-	i, l := Decode(data)
+	i, l := Unsigned.Decode(data)
 	if l != 1 {
 		log.Println(data, i, l)
 		t.Fatal("bad uint64 decoding length")
@@ -51,7 +51,7 @@ func TestEncodeUint64(t *testing.T) {
 		i.SetUint64(v)
 		d1 := make([]byte, binary.MaxVarintLen64)
 		d2 := make([]byte, binary.MaxVarintLen64)
-		l1 := Encode(d1, i)
+		l1 := Unsigned.Encode(d1, i)
 		l2 := binary.PutUvarint(d2, i.Uint64())
 		if l1 != l2 {
 			log.Println(v, d1, l1, d2, l2)
@@ -75,7 +75,7 @@ func TestDecodeUint64(t *testing.T) {
 	for v := a; v > 0; v = v >> 1 {
 		data := make([]byte, binary.MaxVarintLen64)
 		length := binary.PutUvarint(data, v)
-		i, l := Decode(data)
+		i, l := Unsigned.Decode(data)
 		if l != length {
 			log.Println(v, data, length, i, l)
 			t.Fatal("bad uint64 decoding length")
@@ -96,12 +96,12 @@ func TestEncodeDecodeUint128(t *testing.T) {
 	i = i.Lsh(i, 64)
 	i = i.Add(i, big.NewInt(0).SetUint64(b))
 	for i.BitLen() > 0 {
-		length := EncodingLength(i)
+		length := Unsigned.EncodingLength(i)
 		data := make([]byte, length)
-		if Encode(data, i) != length {
+		if Unsigned.Encode(data, i) != length {
 			log.Println(i, length, data)
 			t.Fatal("bad uint128 encoding length")
-		} else if j, l := Decode(data); l != length {
+		} else if j, l := Unsigned.Decode(data); l != length {
 			t.Fatal("bad uint128 decoding length")
 		} else if j.Cmp(i) != 0 {
 			t.Fatal("bad uint128 decoding result")
