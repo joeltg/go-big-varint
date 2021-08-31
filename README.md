@@ -23,6 +23,19 @@ go get github.com/joeltg/go-big-varint
 
 https://pkg.go.dev/github.com/joeltg/go-big-varint
 
+The module exports two variables `Signed` and `Unsigned` that both implement the `VarintCodec` interface:
+
+```go
+type VarintCodec interface {
+	EncodingLength(i *big.Int) int
+	Encode(data []byte, i *big.Int) int
+	Decode(data []byte) (*big.Int, int)
+}
+
+var Signed VarintCodec
+var Unsigned VarintCodec
+```
+
 ## Testing
 
 ```
