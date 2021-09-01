@@ -1,7 +1,10 @@
 package varint
 
 import (
+	"bytes"
 	"errors"
+	"fmt"
+	"io"
 	"math/big"
 )
 
@@ -9,11 +12,14 @@ var Unsigned VarintCodec = unsignedCodec{}
 
 type unsignedCodec struct{}
 
-// EncodingLength returns the number of bytes necessary to encode the given integer.
+// EncodedLen returns the number of bytes necessary to encode the given integer.
 // The function will panic if the value is less than zero.
-func (unsignedCodec) EncodingLength(i *big.Int) int {
+func (unsignedCodec) EncodedLen(i *big.Int) int {
+	s := i.Sign()
 	if i.Sign() < 0 {
 		panic(errors.New("unsigned varints must be non-negative"))
+	} else if s == 0 {
+		return 1
 	}
 
 	bitLength := i.BitLen()
@@ -25,69 +31,82 @@ func (unsignedCodec) EncodingLength(i *big.Int) int {
 	}
 }
 
-// Encode a big integer into a byte slice, returning the number of bytes written.
-// The function will panic if the value is less than zero.
-func (codec unsignedCodec) Encode(data []byte, i *big.Int) int {
+func (codec unsignedCodec) EncodeToBytes(i *big.Int) []byte {
+	l := codec.EncodedLen(i)
+	buf := bytes.NewBuffer(make([]byte, 0, l))
+	n, err := codec.Write(buf, i)
+	if err != nil {
+		panic(err)
+	} else if n != l {
+		panic(fmt.Errorf("bad length: expected %d, got %d", l, n))
+	} else {
+		return buf.Bytes()
+	}
+}
+
+func (codec unsignedCodec) DecodeBytes(data []byte) (*big.Int, error) {
+	i := big.NewInt(0)
+	buf := bytes.NewBuffer(make([]byte, 0, len(data)))
+	if _, err := buf.Write(data); err != nil {
+		panic(err)
+	} else if _, err := codec.Read(buf, i); err != nil {
+		return nil, err
+	} else {
+		return i, nil
+	}
+}
+
+func (unsignedCodec) Write(w io.ByteWriter, i *big.Int) (n int, err error) {
 	if i.Sign() < 0 {
 		panic(errors.New("unsigned varints must be non-negative"))
-	} else if len(data) < codec.EncodingLength(i) {
-		panic(errors.New("the provided byte slice is too small to encode the provided integer"))
 	}
 
 	// allocate a new big.Int so that we can mutate it
 	i = big.NewInt(0).Set(i)
 
-	offset := 0
-	j := big.NewInt(0)
-	for ; limit.Cmp(i) < 0; offset++ {
-		j = j.And(i, pad)
-		j = j.Or(j, msb)
-		data[offset] = byte(j.Uint64())
-		i = i.Div(i, msb)
-	}
+	for j := big.NewInt(0); limit.Cmp(i) < 0; n++ {
+		j = j.And(i, limit)
+		j = j.SetBit(j, 7, 1)
+		err = w.WriteByte(byte(j.Uint64()))
+		if err != nil {
+			return
+		}
 
-	c := big.NewInt(0)
-	for ; c.And(i, notRest).Sign() != 0; offset++ {
-		j = j.And(i, pad)
-		j = j.Or(j, msb)
-		data[offset] = byte(j.Uint64())
 		i = i.Rsh(i, 7)
 	}
 
-	data[offset] = byte(i.Uint64())
-	return offset + 1
+	err = w.WriteByte(byte(i.Uint64()))
+	if err != nil {
+		return
+	}
+
+	n++
+	return
 }
 
-// Decode a big integer from a byte slice, returning the result and the number of bytes read.
-// The result is guaranteed to be non-negative.
-func (unsignedCodec) Decode(data []byte) (*big.Int, int) {
-	offset := 0
-	i, shift := big.NewInt(0), uint(0)
-	delta, c := big.NewInt(0), big.NewInt(0)
-	for {
-		if offset < len(data) {
-			b := data[offset]
-			delta = delta.SetUint64(uint64(b))
-			delta = delta.And(delta, rest)
-			if shift < 28 {
-				delta = delta.Lsh(delta, shift)
-			} else {
-				c = c.SetUint64(1)
-				c = c.Lsh(c, shift)
-				delta = delta.Mul(delta, c)
-			}
-			i = i.Add(i, delta)
-			shift += 7
-			offset++
-			if b < 0x80 {
-				break
-			} else {
-				continue
-			}
-		} else {
-			panic(errors.New("out of range"))
+func (unsignedCodec) Read(r io.ByteReader, i *big.Int) (n int, err error) {
+	i = i.SetUint64(0)
+	delta := big.NewInt(0)
+	for b := byte(0); ; n++ {
+		b, err = r.ReadByte()
+		if err != nil {
+			return
+		}
+
+		delta = delta.SetUint64(uint64(b))
+		delta = delta.SetBit(delta, 7, 0)
+
+		if n > 0 {
+			delta = delta.Lsh(delta, uint(n)*7)
+		}
+
+		i = i.Add(i, delta)
+
+		if b < 0x80 {
+			n++
+			break
 		}
 	}
 
-	return i, offset
+	return
 }
